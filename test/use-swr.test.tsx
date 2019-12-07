@@ -531,11 +531,12 @@ describe('useSWR - error', () => {
 describe('useSWR - focus', () => {
   afterEach(cleanup)
 
-  it('should revalidate on focus by default', async () => {
+  it('should revalidate on focus by default after ${focusThrottleInterval} ms', async () => {
     let value = 0
 
     function Page() {
       const { data } = useSWR('dynamic-5', () => value++, {
+        focusThrottleInterval: 100,
         dedupingInterval: 0
       })
       return <div>data: {data}</div>
@@ -546,6 +547,11 @@ describe('useSWR - focus', () => {
     expect(container.firstChild.textContent).toMatchInlineSnapshot(`"data: "`)
     await waitForDomChange({ container }) // mount
     expect(container.firstChild.textContent).toMatchInlineSnapshot(`"data: 0"`)
+    await act(() => {
+      // trigger focus but do not increment data
+      fireEvent.focus(window)
+      return new Promise(res => setTimeout(res, 100))
+    })
     await act(() => {
       // trigger revalidation
       fireEvent.focus(window)

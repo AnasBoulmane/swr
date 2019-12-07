@@ -132,7 +132,8 @@ const mutate: mutateInterface = async (_key, _data, shouldRevalidate) => {
 }
 
 function mergeState(state, payload) {
-  return { ...state, ...payload }
+  const newState = { ...state, ...payload }
+  return deepEqual(newState, state) ? state : newState
 }
 
 function useSWR<Data = any, Error = any>(
@@ -301,10 +302,9 @@ function useSWR<Data = any, Error = any>(
           // data changed
           newState.data = newData
           dataRef.current = newData
+          // merge the new state
+          dispatch(newState)
         }
-
-        // merge the new state
-        dispatch(newState)
 
         if (!shouldDeduping) {
           // also update other hooks
